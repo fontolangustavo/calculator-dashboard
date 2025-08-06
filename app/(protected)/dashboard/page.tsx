@@ -91,10 +91,12 @@ export default function RecordsPage() {
     return (
         <div>
             {contextHolder}
-            <h2 style={{ marginBottom: 10 }}>Records</h2>
-            <Button type="primary" onClick={() => setModalOpen(true)}>
-                Request Operation
-            </Button>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 10, marginBottom: 30 }}>
+                <h2>Records</h2>
+                <Button type="primary" onClick={() => setModalOpen(true)}>
+                    Request Operation
+                </Button>
+            </div>
             <Table
                 rowKey="id"
                 loading={loading}

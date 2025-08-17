@@ -2,6 +2,7 @@
 import { Modal, Form, InputNumber, Select, message } from "antd";
 import { useEffect, useState } from "react";
 import { OperationType } from "./types";
+import { useAuth } from "@/components/AuthProvider";
 
 type Props = {
     messageApi: any;
@@ -25,6 +26,7 @@ export function OperationModal({
     open,
     onClose
 }: Props) {
+    const { refreshUser } = useAuth();
     const [form] = Form.useForm();
     const [operationTypes, setOperationTypes] = useState<OperationType[]>([]);
     const selectedType = Form.useWatch("type", form);
@@ -80,6 +82,7 @@ export function OperationModal({
 
             if (res.ok) {
                 messageApi.success("Operation requested successfully");
+                refreshUser();
                 onClose();
 
             } else {

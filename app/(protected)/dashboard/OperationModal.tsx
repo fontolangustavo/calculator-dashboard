@@ -4,11 +4,27 @@ import { useEffect, useState } from "react";
 import { OperationType } from "./types";
 
 type Props = {
+    messageApi: any;
+    contextHolder: any;
     open: boolean;
     onClose: () => void;
 };
 
-export function OperationModal({ open, onClose }: Props) {
+const safeParseJson = (text: string) => {
+    if (!text) return undefined;
+    try {
+        return JSON.parse(text);
+    } catch {
+        return undefined;
+    }
+};
+
+export function OperationModal({
+    messageApi,
+    contextHolder,
+    open,
+    onClose
+}: Props) {
     const [form] = Form.useForm();
     const [operationTypes, setOperationTypes] = useState<OperationType[]>([]);
     const selectedType = Form.useWatch("type", form);
@@ -38,11 +54,11 @@ export function OperationModal({ open, onClose }: Props) {
             const isRandom = values.type === "RANDOM_STRING";
 
             const operands = isRandom
-                ? []
+                ? [values.operand1]
                 : [values.operand1, values.operand2].filter(v => v !== undefined && v !== null);
 
-            if (!isRandom && operands.length === 0) {
-                message.error("Please provide at least one operand.");
+            if (operands.length === 0) {
+                messageApi.error("Please provide at least one operand.");
                 return;
             }
 
@@ -51,7 +67,7 @@ export function OperationModal({ open, onClose }: Props) {
                 operands,
             };
 
-            await fetch(`/api/operations`, {
+            const res = await fetch(`/api/operations`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -59,10 +75,23 @@ export function OperationModal({ open, onClose }: Props) {
                 body: JSON.stringify(body),
             });
 
-            message.success("Operation requested successfully");
-            onClose();
+            const text = await res.text();
+            const data = safeParseJson(text);
+
+            if (res.ok) {
+                messageApi.success("Operation requested successfully");
+                onClose();
+
+            } else {
+                messageApi.open({
+                    type: "error",
+                    content: data.message,
+                });
+            }
+
         } catch (e: any) {
-            message.error(e.message || "Failed to request operation");
+            messageApi.error(e.message || "Failed to request operation");
+            onClose();
         }
     };
 
@@ -74,6 +103,7 @@ export function OperationModal({ open, onClose }: Props) {
             onOk={() => form.submit()}
             okText="Request"
         >
+            {contextHolder}
             <Form form={form} layout="vertical" onFinish={onFinish}>
                 <Form.Item label="Operation Type" name="type" rules={[{ required: true }]}>
                     <Select
@@ -83,15 +113,13 @@ export function OperationModal({ open, onClose }: Props) {
                         }))}
                     />
                 </Form.Item>
+                <Form.Item label="Operand 1" name="operand1" rules={[{ required: true }]}>
+                    <InputNumber style={{ width: "100%" }} />
+                </Form.Item>
                 {selectedType !== "RANDOM_STRING" && (
-                    <>
-                        <Form.Item label="Operand 1" name="operand1" rules={[{ required: true }]}>
-                            <InputNumber style={{ width: "100%" }} />
-                        </Form.Item>
-                        <Form.Item label="Operand 2" name="operand2">
-                            <InputNumber style={{ width: "100%" }} />
-                        </Form.Item>
-                    </>
+                    <Form.Item label="Operand 2" name="operand2">
+                        <InputNumber style={{ width: "100%" }} />
+                    </Form.Item>
                 )}
             </Form>
         </Modal>

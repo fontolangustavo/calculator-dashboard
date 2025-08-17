@@ -105,10 +105,15 @@ export default function RecordsPage() {
                 pagination={pagination}
                 onChange={handleTableChange}
             />
-            <OperationModal open={modalOpen} onClose={() => {
-                setModalOpen(false);
-                fetchData();
-            }} />
+            <OperationModal
+                messageApi={messageApi}
+                contextHolder={contextHolder}
+                open={modalOpen}
+                onClose={() => {
+                    setModalOpen(false);
+                    fetchData();
+                }}
+            />
         </div>
     );
 }

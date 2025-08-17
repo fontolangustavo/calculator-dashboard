@@ -6,7 +6,11 @@ function toDate(value?: DateLike): Date | null {
     return isNaN(d.getTime()) ? null : d;
 }
 
-export function formatRelativeTime(value?: DateLike, locale: string = "en") {
+export function formatRelativeTime(
+    value?: DateLike,
+    locale: string = "en",
+    _timeZone?: string
+) {
     const d = toDate(value);
     if (!d) return "-";
 
@@ -34,10 +38,16 @@ export function formatRelativeTime(value?: DateLike, locale: string = "en") {
     return "-";
 }
 
-export function formatFullDate(value?: DateLike, locale: string = "en-US") {
+export function formatFullDate(
+    value?: DateLike,
+    locale: string = "en-US",
+    timeZone?: string
+) {
     const d = toDate(value);
     if (!d) return "-";
+
     return new Intl.DateTimeFormat(locale, {
+        timeZone,
         year: "numeric",
         month: "2-digit",
         day: "2-digit",

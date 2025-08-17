@@ -5,6 +5,7 @@ import type { ColumnsType, TablePaginationConfig } from "antd/es/table";
 import { OperationModal } from "./OperationModal";
 
 import { formatRelativeTime, formatFullDate } from "@/helpers/datetime";
+import { useUserTimeZone } from "@/hooks/useUserTimeZone";
 
 type Record = {
     id: string;
@@ -13,13 +14,6 @@ type Record = {
     userBalance: string;
     operationResponse: string;
     date: string;
-};
-
-type ApiResponse = {
-    content: Record[];
-    totalElements: number;
-    number: number;
-    size: number;
 };
 
 export default function RecordsPage() {
@@ -33,6 +27,10 @@ export default function RecordsPage() {
     const [loading, setLoading] = useState(false);
     const [search, setSearch] = useState("");
     const [modalOpen, setModalOpen] = useState(false);
+
+    const timeZone = useUserTimeZone();
+    const locale = "en";
+    const localeFull = "en-US";
 
     const fetchData = async (
         page: number = 0,
@@ -117,8 +115,8 @@ export default function RecordsPage() {
             dataIndex: "createdAt",
             sorter: true,
             render: (value: string) => (
-                <Tooltip title={formatFullDate(value)}>
-                    <span>{formatRelativeTime(value)}</span>
+                <Tooltip title={formatFullDate(value, localeFull, timeZone)}>
+                    <span>{formatRelativeTime(value, locale, timeZone)}</span>
                 </Tooltip>
             ),
         },

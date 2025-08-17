@@ -1,11 +1,13 @@
-import { externalGet } from "@/lib/api";
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 
+import { externalGet } from "@/lib/api";
+import { SESSION_COOKIE } from "@/lib/cookies";
+
 export async function GET(req: Request) {
     try {
-        const cookieStore = cookies();
-        const token = cookieStore.get("__session")?.value;
+        const cookieStore: any = await cookies();
+        const token = cookieStore.get(SESSION_COOKIE)?.value;
 
         const url = new URL(req.url);
         const qs = url.searchParams.toString();

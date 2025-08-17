@@ -1,8 +1,10 @@
 "use client";
 import { useEffect, useState } from "react";
-import { Table, Input, message, Button } from "antd";
+import { Table, message, Button, Space, Popconfirm, Tooltip } from "antd";
 import type { ColumnsType, TablePaginationConfig } from "antd/es/table";
 import { OperationModal } from "./OperationModal";
+
+import { formatRelativeTime, formatFullDate } from "@/helpers/datetime";
 
 type Record = {
     id: string;
@@ -80,12 +82,66 @@ export default function RecordsPage() {
         fetchData((pagination.current ?? 1) - 1, pagination.pageSize ?? 10, sortBy, sortDir, search);
     };
 
+    const handleDelete = async (id: string) => {
+        setLoading(true);
+        try {
+            const res = await fetch(`/api/records/${id}`, {
+                method: "DELETE",
+                credentials: "include",
+            });
+
+            if (!res.ok) {
+                let details: any = {};
+                try { details = await res.json(); } catch { }
+                const msg = details?.message || `Failed with status ${res.status}`;
+                throw new Error(msg);
+            }
+
+            messageApi.success("Record deleted successfully.");
+
+            fetchData((pagination.current ?? 1) - 1, pagination.pageSize ?? 10);
+        } catch (err: any) {
+            messageApi.error(`Could not delete record: ${err?.message || err}`);
+        } finally {
+            setLoading(false);
+        }
+    };
+
     const columns: ColumnsType<Record> = [
         { title: "Type", dataIndex: "operationType", sorter: true },
         { title: "Amount", dataIndex: "amount", sorter: true },
         { title: "Response", dataIndex: "operationResponse", sorter: true },
         { title: "Balance", dataIndex: "userBalance", sorter: true },
-        { title: "Date", dataIndex: "createdAt", sorter: true },
+        {
+            title: "Date",
+            dataIndex: "createdAt",
+            sorter: true,
+            render: (value: string) => (
+                <Tooltip title={formatFullDate(value)}>
+                    <span>{formatRelativeTime(value)}</span>
+                </Tooltip>
+            ),
+        },
+        {
+            title: "Actions",
+            key: "actions",
+            render: (_, record) => (
+                <Space>
+                    <Popconfirm
+                        title="Delete this record?"
+                        description="This action can't be undone."
+                        okText="Delete"
+                        cancelText="Cancel"
+                        okButtonProps={{ danger: true }}
+                        onConfirm={() => handleDelete(record.id)}
+                    >
+                        <Tooltip title="Delete">
+                            <Button danger size="small">Delete</Button>
+                        </Tooltip>
+                    </Popconfirm>
+                </Space>
+            ),
+        },
     ];
 
     return (
